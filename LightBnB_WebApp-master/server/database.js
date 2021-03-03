@@ -26,7 +26,7 @@ const getUserWithEmail = function(email) {
   };
   return pool.query(query)
     .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('getUserEmail failed', err.stack));
 };
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -45,7 +45,7 @@ const getUserWithId = function(id) {
   };
   return pool.query(query)
     .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('getUserId failed', err.stack));
 };
 exports.getUserWithId = getUserWithId;
 
@@ -66,7 +66,7 @@ const addUser =  function(user) {
 
   return pool.query(query)
     .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('addUser failed', err.stack));
 };
 exports.addUser = addUser;
 
@@ -94,7 +94,7 @@ const getAllReservations = function(guest_id, limit = 10) {
 
   return pool.query(query)
     .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('getAllRes failed', err.stack));
 };
 
 exports.getAllReservations = getAllReservations;
@@ -114,7 +114,7 @@ const getAllProperties = function(options, limit = 10) {
   let queryString = `
     SELECT properties.*, avg(property_reviews.rating) as average_rating
     FROM properties
-    JOIN property_reviews ON properties.id = property_id
+    LEFT JOIN property_reviews ON properties.id = property_id
     `;
   
   // Add options if specified
@@ -167,10 +167,11 @@ const getAllProperties = function(options, limit = 10) {
     LIMIT $${queryParams.length};
     `;
   
+  console.log(queryString, queryParams)
   // 6
   return pool.query(queryString, queryParams)
     .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('getAllProperties failed', err.stack));
 };
 exports.getAllProperties = getAllProperties;
 
@@ -197,16 +198,18 @@ const addProperty = function(property) {
 
   property.cost_per_night = Number(property.cost_per_night) * 100;
   
+  const queryKeys = Object.keys(property).filter(x => property[x]); //filters out keys without values
   const queryParams = Object.values(property).filter(x => x); // filters out empty values
   const queryVals = Array.from({length: queryParams.length}, (_, i) => '$' + (i + 1)); //creates an array of the indices
   let queryString = `
-  INSERT INTO properties (${Object.keys(property).filter(x => property[x]).join(', ')})
-  VALUES (${queryVals.join(', ')})
-  RETURNING *;`;
+  INSERT INTO properties(${queryKeys.join(', ')})
+  VALUES(${queryVals.join(', ')})
+  RETURNING *`;
 
-  console.log(queryString, queryParams)
+  // console.log(queryString, queryParams)
   return pool.query(queryString, queryParams)
     .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
+    .catch(err => console.error('addProperty failed', err.stack));
 };
+
 exports.addProperty = addProperty;
