@@ -1,6 +1,6 @@
 $(() => {
   window.propertyListing = {};
-  
+
   function createListing(property, isReservation) {
     return `
     <article class="property-listing">
@@ -25,6 +25,23 @@ $(() => {
       </article>
     `
   }
+
+  // const $makeResForm = $(
+  //   `
+  //   <form id="res_form">
+  //     <div>
+  //       <label for="start_date">Start Date</label>
+  //       <input type="number" name="minimum_price_per_night" placeholder="Minimum Cost" id="search-property-form__minimum-price-per-night">
+  //       <label for="search-property-form__maximum-price-per-night">Maximum Cost</label>
+  //       <input type="number" name="maximum_price_per_night" placeholder="Maximum Cost" id="search-property-form__maximum-price-per-night">
+  //     </div>
+  //   </form>
+  //   `
+  // )
+
+  // $('#make_res').on('click', function(e) {
+  //   e.preventDefault();
+  // })
 
   window.propertyListing.createListing = createListing;
 
