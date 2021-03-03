@@ -182,6 +182,21 @@ exports.getAllProperties = getAllProperties;
  */
 const addProperty = function(property) {
   
+  // Converts necessary fields to numbers first
+  if(property.number_of_bathrooms) {
+    property.number_of_bathrooms = Number(property.number_of_bathrooms);
+  }
+
+   if(property.number_of_bedrooms) {
+    property.number_of_bedrooms = Number(property.number_of_bedrooms);
+  }
+
+   if(property.parking_spaces) {
+    property.parking_spaces = Number(property.parking_spaces);
+  }
+
+  property.cost_per_night = Number(property.cost_per_night) * 100;
+  
   const queryParams = Object.values(property).filter(x => x); // filters out empty values
   const queryVals = Array.from({length: queryParams.length}, (_, i) => '$' + (i + 1)); //creates an array of the indices
   let queryString = `
@@ -189,8 +204,9 @@ const addProperty = function(property) {
   VALUES (${queryVals.join(', ')})
   RETURNING *;`;
 
+  console.log(queryString, queryParams)
   return pool.query(queryString, queryParams)
-    .then(res => res.rows)
+    .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
 };
 exports.addProperty = addProperty;
