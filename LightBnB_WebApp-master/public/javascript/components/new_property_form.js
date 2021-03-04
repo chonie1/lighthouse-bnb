@@ -104,7 +104,6 @@ $(() => {
     event.preventDefault();
 
     views_manager.show('none');
-
     const data = $(this).serialize();
     submitProperty(data)
     .then(() => {

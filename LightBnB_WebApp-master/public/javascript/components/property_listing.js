@@ -1,7 +1,7 @@
 $(() => {
   window.propertyListing = {};
 
-  function createListing(property, isReservation) {
+  function createListing(property, isReservation, myListing) {
     return `
     <article class="property-listing">
         <section class="property-listing__preview-image">
@@ -14,35 +14,61 @@ $(() => {
             <li>number_of_bathrooms: ${property.number_of_bathrooms}</li>
             <li>parking_spaces: ${property.parking_spaces}</li>
           </ul>
-          ${isReservation ? 
+          ${isReservation && !myListing ? 
             `<p>${moment(property.start_date).format('ll')} - ${moment(property.end_date).format('ll')}</p>` 
             : ``}
           <footer class="property-listing__footer">
             <div class="property-listing__rating">${Math.round(property.average_rating * 100) / 100}/5 stars</div>
             <div class="property-listing__price">$${property.cost_per_night/100.0}/night</div>
+              ${!isReservation && !myListing ? 
+                `<form id="listing_${property.id}" action="/api/reservations" method="post">
+                  <input type="hidden" name="property_id" value=${property.id}>
+                  <button class="make_res_btn" type="button" id="make_res_btn">Make Reservation</button>
+                </form>`:``}
           </footer>
         </section>
       </article>
     `
-  }
-
-  // const $makeResForm = $(
-  //   `
-  //   <form id="res_form">
-  //     <div>
-  //       <label for="start_date">Start Date</label>
-  //       <input type="number" name="minimum_price_per_night" placeholder="Minimum Cost" id="search-property-form__minimum-price-per-night">
-  //       <label for="search-property-form__maximum-price-per-night">Maximum Cost</label>
-  //       <input type="number" name="maximum_price_per_night" placeholder="Maximum Cost" id="search-property-form__maximum-price-per-night">
-  //     </div>
-  //   </form>
-  //   `
-  // )
-
-  // $('#make_res').on('click', function(e) {
-  //   e.preventDefault();
-  // })
+  };
 
   window.propertyListing.createListing = createListing;
+  
 
+  const $newResForm = $( `
+    <label for="start_date">Start Date</label>
+    <input type="text" name="start_date" placeholder="yyyy-mm-dd" id="make-res-form_start-date">
+    <label for="end_date">End_Date</label>
+    <input type="text" name="end_date" placeholder="yyyy-mm-dd" id="make-res-form_end-date">
+    <button id="submit_res" type="submit">Submit</button>
+  `)
+
+  $(document).on('click','button.make_res_btn',function(e) {
+    $(this).after($newResForm);
+    $(this).hide();
+  });
+
+  $newResForm.parent().on('submit', function (event) {
+    const elem = $newResForm.parent();
+    event.preventDefault();
+    views_manager.show('none');
+    const data = $(this).serialize();
+    submitReservation(data)
+      .then(() => {
+        alert('Success');
+        elem.remove();
+        views_manager.show('none');
+        propertyListings.clearListings();
+        getAllReservations()
+          .then(function(json) {
+            propertyListings.addProperties(json.reservations, true);
+            views_manager.show('listings');
+          })
+          .catch(error => console.error(error));
+      })
+      .catch((error) => {
+        console.error(error);
+        views_manager.show('listings');
+      })
+  });
+  
 });

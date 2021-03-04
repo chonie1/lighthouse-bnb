@@ -58,7 +58,7 @@ $(() => {
     propertyListings.clearListings();
     getAllListings(`owner_id=${currentUser.id}`)
       .then(function(json) {
-        propertyListings.addProperties(json.properties);
+        propertyListings.addProperties(json.properties, false, true);
         views_manager.show('listings');
     });
   });

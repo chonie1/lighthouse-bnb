@@ -71,7 +71,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   JOIN properties ON reservations.property_id = properties.id
   JOIN property_reviews ON properties.id = property_reviews.property_id 
   WHERE reservations.guest_id = $1
-  AND reservations.end_date < now()::date
+  AND reservations.end_date > now()::date
   GROUP BY properties.id, reservations.id
   ORDER BY reservations.start_date
   LIMIT $2`;
@@ -202,13 +202,18 @@ exports.addProperty = addProperty;
  * @return {Promise<{}>} A promise to the property.
  */
 
-// const makeReservation = function(reservation) {
-//   const text = ``;
-//   const values = [];
-  
-//   return db.query(text, values)
-//     .then(res => res.rows)
-//     .catch(err => console.error(`${this.name} failed`, err.stack));
-// };
+const makeReservation = function(reservation) {
+  const queryKeys = Object.keys(reservation).filter(x => reservation[x]); //filters out keys without values
+  const queryParams = Object.values(reservation).filter(x => x); // filters out empty values
+  const queryVals = Array.from({length: queryParams.length}, (_, i) => '$' + (i + 1)); //creates an array of the indices
+  let queryString = `
+  INSERT INTO reservations(${queryKeys.join(', ')})
+  VALUES(${queryVals.join(', ')})
+  RETURNING *`;
 
-// exports.makeReservation = makeReservation;
+  return db.query(queryString, queryParams)
+    .then(res => res.rows[0])
+    .catch(err => console.error('addProperty failed', err.stack));
+};
+
+exports.makeReservation = makeReservation;
